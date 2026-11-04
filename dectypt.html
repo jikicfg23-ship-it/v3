@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChaosCrypt | فك تشفير البصمة الفوضوية</title>
+    <link rel="stylesheet" href="decrypt-style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🌀 ChaosCrypt Decoder</div>
+            <p class="subtitle">استرجع المقال أو الرابط المخفي عبر تحليل مصفوفة البصمة الفوضوية وكلمة المرور</p>
+        </header>
+
+        <div class="main-content">
+            <!-- لوحة التحكم والرفع -->
+            <div class="control-panel">
+                <div class="input-group">
+                    <label for="imageUpload">اختر أو ارفع صورة البصمة (PNG):</label>
+                    <input type="file" id="imageUpload" accept="image/png">
+                    <div class="upload-zone" id="uploadZone">
+                        <p>اضغط هنا أو اسحب الصورة إلى داخل المربع</p>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="passwordInput">كلمة المرور السرية (المفتاح):</label>
+                    <input type="password" id="passwordInput" placeholder="أدخل كلمة المرور الصحيحة لفك القفل">
+                </div>
+
+                <div class="button-group">
+                    <button id="btnDecrypt" class="btn-primary">🔓 فك تشفير واستخراج النص</button>
+                </div>
+            </div>
+
+            <!-- لوحة العرض والنتائج -->
+            <div class="preview-panel">
+                <h3>المقال المسترجع</h3>
+                <div class="result-wrapper">
+                    <div id="textOutput" class="output-box" placeholder="سيظهر مقالك الثمين هنا بعد فك الشفرة بنجاح..."></div>
+                </div>
+                <button id="btnCopy" class="btn-secondary" style="display: none;">📋 نسخ المقال المستخرج</button>
+            </div>
+        </div>
+        
+        <footer>
+            مشروع مفتوح المصدر على GitHub | ChaosCrypt © 2026
+        </footer>
+    </div>
+
+    <script src="decrypt-script.js"></script>
+</body>
+</html>
