@@ -1,4 +1,3 @@
-// دالة تحويل كلمة المرور إلى الهاش SHA-256 لمطابقة معادلة التشفير
 async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(message);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -6,7 +5,6 @@ async function sha256(message) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// دالة توليد الأرقام العشوائية بناءً على البذرة لإعادة رسم شبكة الإحداثيات الوهمية
 function createPRNG(seedHex) {
     let seed = parseInt(seedHex.substring(0, 8), 16);
     return function() {
@@ -15,13 +13,11 @@ function createPRNG(seedHex) {
     };
 }
 
-// إدارة واجهة الرفع وتفاعل المستخدم مع منطقة الرفع
 const uploadZone = document.getElementById('uploadZone');
 const imageUpload = document.getElementById('imageUpload');
 let uploadedImage = null;
 
 uploadZone.addEventListener('click', () => imageUpload.click());
-
 imageUpload.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) handleFile(file);
@@ -40,40 +36,30 @@ function handleFile(file) {
     reader.readAsDataURL(file);
 }
 
-// الدالة الأساسية لتحليل الصورة وفك الشفرة البصرية
 document.getElementById('btnDecrypt').addEventListener('click', async () => {
     const password = document.getElementById('passwordInput').value;
     const outputBox = document.getElementById('textOutput');
 
-    if (!uploadedImage) {
-        alert('من فضلك ارفع صورة البصمة الفوضوية أولاً!');
-        return;
-    }
-    if (!password) {
-        alert('من فضلك أدخل كلمة المرور لفك تشفير المصفوفة الهندسية!');
+    if (!uploadedImage || !password) {
+        alert('من فضلك ارفع الصورة وأدخل كلمة المرور!');
         return;
     }
 
-    outputBox.innerText = "جاري تحليل المصفوفة وفك التشفير...";
+    outputBox.innerText = "جاري قراءة خطوط الفوضى واستخراج النص الأساسي...";
 
-    // 1. رسم الصورة المرفوعة داخل كود خلفي لتحليل البكسلات
     const canvas = document.createElement('canvas');
     canvas.width = uploadedImage.width;
     canvas.height = uploadedImage.height;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(uploadedImage, 0, 0);
 
-    // 2. إعادة بناء محاكي الفوضى العشوائي باستخدام كلمة المرور (SHA-256)
     const passwordHash = await sha256(password);
     const rand = createPRNG(passwordHash);
 
-    // استخراج معلومات البكسلات والألوان من منتصف خطوط الربط
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imgData.data;
 
-    // إعادة توليد نفس مواقع النقاط التي تم إنتاجها أثناء التشفير
-    // لنتوقع مكان تواجد خطوط البيانات بناء على حجم الصورة الافتراضي 400x400
-    const totalPoints = 500; // مسح عميق لتغطية أقصى طول متوقع للنصوص
+    const totalPoints = 300; 
     const points = [];
     for (let i = 0; i < totalPoints; i++) {
         points.push({
@@ -82,63 +68,52 @@ document.getElementById('btnDecrypt').addEventListener('click', async () => {
         });
     }
 
-    const decryptedBytes = [];
+    let base64Result = "";
     
-    // 3. عكس معادلة التعديل البصري واستخلاص قيم البايتات (Byte) من بكسلات الخطوط
-    for (let i = 0; i < 2000; i++) { // فحص مصفوفة الخطوط المتوقعة من الـ PRNG
+    for (let i = 0; i < 1000; i++) {
         const p1Idx = Math.floor(rand() * points.length);
         const p2Idx = Math.floor(rand() * points.length);
         
         const p1 = points[p1Idx];
         const p2 = points[p2Idx];
 
-        // حساب نقطة المنتصف الرياضية لكل خط لقراءة لون التعديل الحقيقي المطبوع فيها
         const midX = Math.floor((p1.x + p2.x) / 2);
         const midY = Math.floor((p1.y + p2.y) / 2);
         
         if (midX >= 0 && midX < canvas.width && midY >= 0 && midY < canvas.height) {
             const pixelIdx = (midY * canvas.width + midX) * 4;
-            const r = pixels[pixelIdx]; // اللون الأحمر الحامل للبايت الأساسي
+            const r = pixels[pixelIdx];
+            const b = pixels[pixelIdx + 2];
             
-            // إذا وجدنا بكسل ملون يقع في خط تشفيري تم بناؤه بواسطة المفتاح
-            if (r > 100 && r <= 255) {
-                const calculatedByte = r - 100;
-                decryptedBytes.push(calculatedByte);
+            if (b > 200 && r > 0) {
+                base64Result += String.fromCharCode(r);
             }
         }
     }
 
-    // تنظيف مصفوفة البايتات المستخرجة وإزالة القيم الشاذة الناتجة عن تداخل الخطوط الفوضوية
-    const cleanBytes = [];
-    const seen = new Set();
-    // استخراج الحروف الفريدة المتسلسلة بناءً على تكرار الخطوط المتوقعة
-    for(let b of decryptedBytes) {
-        if(b >= 32 && b <= 255 || b === 10) { // النطاق الصحيح لحروف اللغات والروابط ورموز الـ UTF-8
-            cleanBytes.push(b);
-        }
-    }
-
-    // 4. تحويل البايتات المستقرة مجدداً إلى نص مفهوم
     try {
-        const finalBytes = new Uint8Array(cleanBytes.slice(0, Math.floor(cleanBytes.length / 3.3))); // نسبة التوازن الرياضي العكسي
-        const decoder = new TextDecoder("utf-8");
-        const decryptedText = decoder.decode(finalBytes).trim();
+        const cleanBase64 = base64Result.replace(/[^A-Za-z0-9+/=]/g, "");
+        const decodedString = atob(cleanBase64);
+        const uint8Array = new Uint8Array(decodedString.length);
+        for (let i = 0; i < decodedString.length; i++) {
+            uint8Array[i] = decodedString.charCodeAt(i);
+        }
+        const finalMegal = new TextDecoder("utf-8").decode(uint8Array);
 
-        if (decryptedText.length > 2) {
-            outputBox.innerText = decryptedText;
+        if (finalMegal.length > 0) {
+            outputBox.innerText = finalMegal;
             document.getElementById('btnCopy').style.display = 'block';
         } else {
-            outputBox.innerHTML = "<span style='color: #ef4444;'>❌ فشل فك التشفير: كلمة المرور غير صحيحة أو الصورة تالفة!</span>";
-            document.getElementById('btnCopy').style.display = 'none';
+            throw new Error();
         }
     } catch (err) {
-        outputBox.innerHTML = "<span style='color: #ef4444;'>❌ خطأ في معالجة شفرة البيانات البصرية.</span>";
+        outputBox.innerHTML = "<span style='color: #ef4444;'>❌ فشل فك التشفير: كلمة المرور خاطئة أو جودة الصورة مشوشة!</span>";
+        document.getElementById('btnCopy').style.display = 'none';
     }
 });
 
-// دالة نسخ المقال لسهولة الاستخدام
 document.getElementById('btnCopy').addEventListener('click', () => {
     const text = document.getElementById('textOutput').innerText;
     navigator.clipboard.writeText(text);
-    alert('تم نسخ المقال إلى الحافظة بنجاح!');
+    alert('تم نسخ المقال المسترجع بنجاح!');
 });
