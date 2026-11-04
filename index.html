@@ -10,16 +10,28 @@
     <div class="container">
         <header>
             <div class="logo">🌀 ChaosCrypt Decoder</div>
-            <p class="subtitle">استرجع المقال أو الرابط المخفي عبر تحليل مصفوفة البصمة الفوضوية وكلمة المرور</p>
+            <p class="subtitle">استرجع المقال أو الرابط المخفي عبر تصوير البصمة أو رفعها مع كلمة المرور</p>
         </header>
 
         <div class="main-content">
             <div class="control-panel">
                 <div class="input-group">
-                    <label for="imageUpload">اختر أو ارفع صورة البصمة (PNG):</label>
-                    <input type="file" id="imageUpload" accept="image/png">
+                    <label>اختر طريقة إدخال صورة البصمة:</label>
+                    
+                    <!-- أزرار التحكم الجديدة للاختيار بين الكاميرا والملفات -->
+                    <div class="upload-options">
+                        <button type="button" id="btnLaunchCamera" class="btn-action">📸 فتح الكاميرا للتصوير</button>
+                        <button type="button" id="btnSelectFile" class="btn-action">📁 اختيار صورة من الجهاز</button>
+                    </div>
+
+                    <!-- حقل الرفع المخفي الذي يتم تحفيزه بالزر -->
+                    <input type="file" id="imageUpload" accept="image/png, image/jpeg" style="display: none;">
+                    
+                    <!-- حقل الكاميرا المباشر للهواتف -->
+                    <input type="file" id="cameraUpload" accept="image/*" capture="environment" style="display: none;">
+
                     <div class="upload-zone" id="uploadZone">
-                        <p>اضغط هنا أو اسحب الصورة إلى داخل المربع</p>
+                        <p id="uploadStatus">لم يتم اختيار أو تصوير أي شفرة حتى الآن</p>
                     </div>
                 </div>
 
