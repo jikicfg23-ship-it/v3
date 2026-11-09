@@ -2,7 +2,7 @@
     // 1. كلمات السر العادية (تستطيع تعديلها أو زيادتها هنا مباشرة)
     const allowedPasswords = [
         "MySecret2027",
-        "WelcomePass",
+        "WelcomePass","147258", 
         "123456"
     ];
 
